@@ -82,7 +82,7 @@ const zeroDivisionError = "不能除以 0";
  */
 const Wrapper: React.FC<WrapperProps> = ({ children }) => {
   return (
-    <div className="w-full max-w-sm bg-white border border-gray-300 rounded-2xl overflow-hidden">
+    <div className="w-full bg-white border border-gray-300 rounded-2xl overflow-hidden">
       {children}
     </div>
   );
@@ -394,10 +394,13 @@ const Calculator: React.FC = () => {
   const fixedCalcHeight = "h-[484px] sm:h-[560px]";
 
   return (
-    <div className="bg-white px-4 sm:px-6 py-2 flex justify-center font-sans">
-      <div className="flex flex-row flex-nowrap gap-8 w-full max-w-5xl overflow-x-auto">
+    <div className="bg-white px-4 sm:px-6 py-4 font-sans">
+      {/* 外层滚动容器：窄屏时允许横向滚动；宽屏限制最大宽度 750px */}
+      <div className="w-full max-w-[750px] mx-auto overflow-x-auto">
+        {/* grid 最小宽度 640px (两列各 320px)；避免被进一步挤压 */}
+        <div className="grid gap-8 grid-cols-2 min-w-[640px]">
         {/* 计算器主体 */}
-       <div className="flex-1 md:max-w-md min-w-[225px] shrink-0">
+  <div className="w-full flex flex-col min-w-[200px]">
           <Wrapper>
             {/* 主显示说明保持不变 */}
             <Screen
@@ -432,8 +435,8 @@ const Calculator: React.FC = () => {
         </div>
 
         {/* 历史记录面板 */}
-       <div className="flex-1 md:max-w-sm min-w-[225px] shrink-0">
-         <div className={`bg-gray-200 rounded-2xl p-6 ${fixedCalcHeight} border border-gray-300 flex flex-col`}>
+  <div className="w-full flex flex-col min-w-[200px]">
+         <div className={`bg-gray-200 rounded-2xl p-6 ${fixedCalcHeight} border border-gray-300 flex flex-col`}> 
             <h2 className="text-2xl font-bold text-gray-800 mb-4">历史记录</h2>
            {history.length === 0 ? (
              <p className="text-gray-500 text-center flex-1 flex items-center justify-center">
@@ -449,6 +452,7 @@ const Calculator: React.FC = () => {
              </ul>
            )}
           </div>
+        </div>
         </div>
       </div>
     </div>

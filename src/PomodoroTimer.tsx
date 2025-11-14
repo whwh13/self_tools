@@ -43,7 +43,7 @@ function PomodoroTimer() {
   return (
     <div className="p-4 rounded-2xl bg-white flex flex-col items-center gap-3 w-full relative">
       {/* 左上角输入框 */}
-      <div className="absolute top-4 left-4 flex flex-col gap-2 text-sm">
+      <div className="absolute top-4 left-10 flex flex-col gap-2 text-sm">
         <label>
           工作时间 (分钟):{" "}
           <input

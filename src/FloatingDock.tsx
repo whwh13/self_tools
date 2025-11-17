@@ -9,6 +9,7 @@ const buttons: DockButton[] = [
   { id: 'pomodoro', label: '番茄钟' },
   { id: 'calculator', label: '计算器' },
   { id: 'eyedropper', label: '取色器' },
+  { id: 'ocr', label: 'OCR识别' }, // 新增：OCR 书签
 ];
 
 // 简单的防抖

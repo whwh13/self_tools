@@ -204,12 +204,11 @@ export default function EyeDropper() {
   // --- 渲染 ---
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-800">
-      <div className="w-full max-w-md mx-auto mt-8 bg-gray-100 p-6 shadow-lg rounded-lg">
+    <div className="bg-white font-sans text-gray-800 py-4">
+      <div className="w-full max-w-md mx-auto bg-gray-100 shadow-lg rounded-lg">
         <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">
           屏幕取色器
         </h1>
-        
         {/* --- 取色按钮 --- */}
         <button
           onClick={handlePickColor}
@@ -218,10 +217,8 @@ export default function EyeDropper() {
         >
           {isPicking ? '正在拾取...' : '启动取色器 (吸管)'}
         </button>
-
         {/* --- 颜色显示 --- */}
         <ColorDisplay color={pickedColor} />
-
         {/* --- 错误/状态信息 --- */}
         {error && (
           <div className="mt-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded-md text-sm">

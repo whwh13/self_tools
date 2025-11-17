@@ -4,6 +4,7 @@ import EyeDropper from "./Eyedropper.tsx";
 import SectionDivider from "./SectionDivider.tsx";
 import FloatingDock from "./FloatingDock.tsx";
 import OcrComponent from "./OcrComponent.tsx";
+import FormulaEditor from "./FormulaEditor.tsx";
 // --- Simple Pomodoro Timer Component (TypeScript) ---
 
 
@@ -29,6 +30,10 @@ export default function App() {
           <SectionDivider />
           <div id="ocr" className="scroll-mt-4">
             <OcrComponent />
+          </div>
+          <SectionDivider />
+          <div id="formula-editor" className="scroll-mt-4">
+            <FormulaEditor />
           </div>
         </div>
       </div>

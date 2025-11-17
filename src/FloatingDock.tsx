@@ -9,7 +9,8 @@ const buttons: DockButton[] = [
   { id: 'pomodoro', label: '番茄钟' },
   { id: 'calculator', label: '计算器' },
   { id: 'eyedropper', label: '取色器' },
-  { id: 'ocr', label: 'OCR识别' }, // 新增：OCR 书签
+  { id: 'ocr', label: 'OCR识别' },
+  { id: 'formula-editor', label: '公式编辑器' }, // 新增
 ];
 
 // 简单的防抖
@@ -36,15 +37,13 @@ export default function FloatingDock() {
 
   function scrollTo(id: string) {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   return (
     <div
       ref={dockRef}
-      className={`fixed z-50 select-none cursor-pointer group`}
+      className="fixed z-50 select-none cursor-pointer group"
       style={side === 'left' ? { top, left: 8 } : { top, right: 8 }}
       onMouseEnter={() => setHovering(true)}
       onMouseLeave={() => setHovering(false)}
@@ -60,13 +59,9 @@ export default function FloatingDock() {
             if (typeof window !== 'undefined') window.localStorage.setItem('floatingDockSide', next);
           }}
           onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') {
-              setSide('left'); window.localStorage.setItem('floatingDockSide','left');
-            } else if (e.key === 'ArrowRight') {
-              setSide('right'); window.localStorage.setItem('floatingDockSide','right');
-            } else if (e.key === 'Enter') {
-              setHovering(true);
-            }
+            if (e.key === 'ArrowLeft') { setSide('left'); window.localStorage.setItem('floatingDockSide','left'); }
+            else if (e.key === 'ArrowRight') { setSide('right'); window.localStorage.setItem('floatingDockSide','right'); }
+            else if (e.key === 'Enter') { setHovering(true); }
           }}
           className={`h-11 w-11 rounded-full shadow-lg border border-gray-300 bg-white/90 backdrop-blur flex items-center justify-center hover:shadow-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 ${side === 'left' ? 'origin-left' : 'origin-right'}`}
         >
@@ -77,9 +72,9 @@ export default function FloatingDock() {
       {hovering && (
         <div
           aria-label="工具快捷导航浮动面板"
-          className={`shadow-lg rounded-xl border border-gray-300 bg-white/95 backdrop-blur-sm transition-all w-48 overflow-hidden`}
+          className="shadow-lg rounded-xl border border-gray-300 bg-white/95 backdrop-blur-sm transition-all w-48 overflow-hidden"
         >
-          <div className="px-3 py-2 border-b border-gray-200 flex items-center justify-between select-none">
+          <div className="px-3 py-2 border-b border-gray-200">
             <span className="text-xs font-semibold text-gray-600">工具导航</span>
           </div>
           <ul className="flex flex-col p-2 gap-2">
@@ -89,7 +84,9 @@ export default function FloatingDock() {
                   className="w-full text-left text-sm px-3 py-2 rounded-md bg-gray-100 hover:bg-blue-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
                   onClick={(e) => { e.stopPropagation(); scrollTo(b.id); }}
                   aria-label={`跳转到 ${b.label}`}
-                >{b.label}</button>
+                >
+                  {b.label}
+                </button>
               </li>
             ))}
           </ul>

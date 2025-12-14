@@ -3,7 +3,7 @@ import Calculator from "./Calculator.tsx";
 import EyeDropper from "./Eyedropper.tsx";
 import SectionDivider from "./SectionDivider.tsx";
 import FloatingDock from "./FloatingDock.tsx";
-import OcrComponent from "./testOCR.tsx";
+import OcrComponent from "./OcrComponent.tsx";
 import FormulaEditor from "./FormulaEditor.tsx";
 // --- Simple Pomodoro Timer Component (TypeScript) ---
 

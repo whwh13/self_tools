@@ -1,18 +1,44 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
-import { createWorker } from 'tesseract.js';
-import type { Worker as TesseractWorker } from 'tesseract.js';
 import { ToolCard, ToolHeader } from './ui';
+
+type PaddleOcrService = import('ppu-paddle-ocr/web').PaddleOcrService;
 
 export default function OcrComponent() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [worker, setWorker] = useState<TesseractWorker | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  const serviceRef = useRef<PaddleOcrService | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    let service: PaddleOcrService | null = null;
+
+    (async () => {
+      try {
+        const { PaddleOcrService } = await import('ppu-paddle-ocr/web');
+        service = new PaddleOcrService();
+        await service.initialize();
+        if (!active) return;
+        serviceRef.current = service;
+        setReady(true);
+      } catch (err) {
+        console.error('PaddleOCR 初始化失败:', err);
+        if (active) setInitError('OCR 识别模型加载失败，请刷新页面重试。');
+      }
+    })();
+
+    return () => {
+      active = false;
+      service?.destroy().catch(() => {});
+    };
+  }, []);
 
   const loadImageFromFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -84,37 +110,16 @@ export default function OcrComponent() {
     return () => window.removeEventListener('paste', onPaste);
   }, [loadImageFromFile]);
 
-  useEffect(() => {
-    let active = true;
-    let localWorker: TesseractWorker | null = null;
-
-    (async () => {
-      try {
-        localWorker = await createWorker('eng+chi_sim', 1);
-        if (active) setWorker(localWorker);
-      } catch (err) {
-        console.error('初始化 Tesseract Worker 失败:', err);
-      }
-    })();
-
-    return () => {
-      active = false;
-      localWorker?.terminate().catch(() => {});
-    };
-  }, []);
-
   const runOcr = async () => {
-    if (!imageLoaded || !canvasRef.current || !worker) {
-      console.warn('OCR 条件未满足：请确保已选择图片并且识别核心已加载。');
-      return;
-    }
+    const service = serviceRef.current;
+    if (!imageLoaded || !canvasRef.current || !service) return;
 
     setLoading(true);
     setText('');
 
     try {
-      const { data: { text: resultText } } = await worker.recognize(canvasRef.current);
-      setText(resultText);
+      const result = await service.recognize(canvasRef.current, { flatten: true });
+      setText(result.text.trim());
     } catch (err) {
       console.error('OCR 识别失败:', err);
       setText('识别失败，请查看控制台日志。');
@@ -136,7 +141,12 @@ export default function OcrComponent() {
 
   return (
     <ToolCard>
-      <ToolHeader title="OCR 文字识别" subtitle="中英文识别 · 支持拖拽 / 粘贴 / 选择图片" icon="🔍" gradient="from-sky-500 to-blue-600" />
+      <ToolHeader
+        title="OCR 文字识别"
+        subtitle="基于 PaddleOCR · 中英文识别 · 支持拖拽 / 粘贴 / 选择图片"
+        icon="🔍"
+        gradient="from-sky-500 to-blue-600"
+      />
       <div className="p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <div
@@ -181,12 +191,23 @@ export default function OcrComponent() {
 
           <button
             onClick={runOcr}
-            disabled={loading || !imageLoaded || !worker}
+            disabled={loading || !imageLoaded || !ready}
             className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-8 py-3 font-semibold text-white shadow-lg shadow-sky-500/30 transition-all hover:shadow-xl hover:shadow-sky-500/40 active:scale-[0.98] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none sm:py-4"
           >
-            {loading ? '识别中...' : worker ? '开始识别' : '加载中...'}
+            {loading ? '识别中...' : ready ? '开始识别' : '加载模型中...'}
           </button>
         </div>
+
+        {!ready && (
+          <div className="my-6 flex items-center justify-center gap-2 text-sky-600">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+            <p className="text-sm">{initError ?? '正在下载识别模型（首次约 5-20MB），请稍候...'}</p>
+          </div>
+        )}
+
+        {initError && (
+          <div className="my-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{initError}</div>
+        )}
 
         {loading && (
           <div className="my-6 flex items-center justify-center gap-2 text-sky-600">

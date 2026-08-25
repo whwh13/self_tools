@@ -40,28 +40,29 @@ export default function FloatingDock() {
             else if (e.key === 'ArrowRight') setSide('right');
             else if (e.key === 'Enter') setHovering(true);
           }}
-          className={`h-11 w-11 rounded-full shadow-lg border border-gray-300 bg-white/90 backdrop-blur flex items-center justify-center hover:shadow-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 ${side === 'left' ? 'origin-left' : 'origin-right'}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-full border border-white/60 bg-white/70 shadow-lg shadow-slate-900/10 backdrop-blur-md transition-all hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-sky-400 ${side === 'left' ? 'origin-left' : 'origin-right'}`}
         >
-          <span className="text-lg" role="img" aria-label="工具">🛠️</span>
+          <span className="text-lg leading-none" role="img" aria-label="工具">🛠️</span>
         </button>
       )}
       {hovering && (
         <div
           aria-label="工具快捷导航浮动面板"
-          className="shadow-lg rounded-xl border border-gray-300 bg-white/95 backdrop-blur-sm transition-all w-48 overflow-hidden"
+          className="w-52 overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-2xl shadow-slate-900/10 backdrop-blur-xl"
         >
-          <div className="px-3 py-2 border-b border-gray-200">
-            <span className="text-xs font-semibold text-gray-600">工具导航</span>
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-transparent px-4 py-2.5">
+            <span className="text-xs font-semibold tracking-wide text-slate-500">工具导航</span>
           </div>
-          <ul className="flex flex-col p-2 gap-2">
+          <ul className="flex flex-col gap-1 p-2">
             {tools.map((tool) => (
               <li key={tool.id}>
                 <button
-                  className="w-full text-left text-sm px-3 py-2 rounded-md bg-gray-100 hover:bg-blue-500 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-600 transition-colors hover:bg-gradient-to-r hover:from-sky-500 hover:to-blue-600 hover:text-white"
                   onClick={() => scrollTo(tool.id)}
                   aria-label={`跳转到 ${tool.label}`}
                 >
-                  {tool.label}
+                  <span>{tool.label}</span>
+                  <span className="text-xs opacity-60">›</span>
                 </button>
               </li>
             ))}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
 import { createWorker } from 'tesseract.js';
 import type { Worker as TesseractWorker } from 'tesseract.js';
+import { ToolCard, ToolHeader } from './ui';
 
 export default function OcrComponent() {
   const [text, setText] = useState('');
@@ -134,31 +135,19 @@ export default function OcrComponent() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 bg-white shadow rounded">
-      <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t text-center">
-        <h1 className="text-3xl font-bold">OCR识别（中英识别）</h1>
-        <p className="text-blue-100 mt-1">
-          基于{' '}
-          <a
-            href="https://github.com/Balearica/tesseract.js"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-white"
-          >
-            tesseract.js
-          </a>
-        </p>
-      </header>
-
-      <main className="p-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+    <ToolCard>
+      <ToolHeader title="OCR 文字识别" subtitle="中英文识别 · 支持拖拽 / 粘贴 / 选择图片" icon="🔍" gradient="from-sky-500 to-blue-600" />
+      <div className="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
           <div
             onClick={handleDropzoneClick}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`flex-1 border-2 border-dashed rounded transition-colors relative overflow-hidden ${
-              isDragging ? 'border-blue-600 bg-blue-50' : 'border-gray-300 bg-gray-50'
+            className={`relative flex-1 overflow-hidden rounded-2xl border-2 border-dashed transition-colors ${
+              isDragging
+                ? 'border-sky-500 bg-sky-50'
+                : 'border-slate-200 bg-slate-50 hover:border-sky-400 hover:bg-sky-50/50'
             }`}
           >
             {imageLoaded && (
@@ -167,26 +156,25 @@ export default function OcrComponent() {
                 onClick={clearImage}
                 title="清除图片"
                 aria-label="清除图片"
-                className="absolute top-2 left-2 z-10 h-8 w-8 leading-8 text-center text-white bg-black/50 hover:bg-black/70 rounded-full"
+                className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-900/50 text-white backdrop-blur transition-colors hover:bg-slate-900/70"
               >
                 ×
               </button>
             )}
 
-            <canvas ref={canvasRef} className={`w-full block ${imageLoaded ? '' : 'hidden'}`} />
+            <canvas ref={canvasRef} className={`block w-full ${imageLoaded ? '' : 'hidden'}`} />
 
             {!imageLoaded && (
-              <div className="h-64 flex items-center justify-center px-4 text-center cursor-pointer select-none">
-                <div>
-                  <p className="mb-2">拖拽或粘贴图片到此，或点击此区域选择图片</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </div>
+              <div className="flex h-64 cursor-pointer select-none flex-col items-center justify-center gap-2 px-4 text-center">
+                <span className="text-3xl">🖼️</span>
+                <p className="text-sm text-slate-500">拖拽或粘贴图片到此，或点击此区域选择图片</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </div>
             )}
           </div>
@@ -194,25 +182,31 @@ export default function OcrComponent() {
           <button
             onClick={runOcr}
             disabled={loading || !imageLoaded || !worker}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded disabled:bg-gray-400"
+            className="rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 px-8 py-3 font-semibold text-white shadow-lg shadow-sky-500/30 transition-all hover:shadow-xl hover:shadow-sky-500/40 active:scale-[0.98] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none sm:py-4"
           >
             {loading ? '识别中...' : worker ? '开始识别' : '加载中...'}
           </button>
         </div>
 
         {loading && (
-          <div className="my-5">
-            <p className="text-center text-blue-600">正在处理，请稍候...</p>
+          <div className="my-6 flex items-center justify-center gap-2 text-sky-600">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+            <p className="text-sm">正在处理，请稍候...</p>
           </div>
         )}
 
         {!loading && text && (
           <div className="mt-6">
-            <h3 className="text-xl font-semibold mb-3">识别结果:</h3>
-            <textarea readOnly rows={15} value={text} className="w-full p-4 border rounded font-mono bg-gray-50" />
+            <h3 className="mb-3 text-sm font-semibold text-slate-500">识别结果</h3>
+            <textarea
+              readOnly
+              rows={12}
+              value={text}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 font-mono text-sm leading-relaxed text-slate-700 focus:outline-none"
+            />
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </ToolCard>
   );
 }

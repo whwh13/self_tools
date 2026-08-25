@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ToolCard, ToolHeader } from './ui';
 
 interface ColorData {
   r: number;
@@ -64,9 +65,11 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
   return (
     <button
       onClick={handleCopy}
-      className={`absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded ${
-        copied ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-      } transition-all`}
+      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+        copied
+          ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/40'
+          : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100'
+      }`}
     >
       {copied ? '已复制!' : '复制'}
     </button>
@@ -76,10 +79,10 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
 function ColorDisplay({ color }: { color: ColorData | null }) {
   if (!color) {
     return (
-      <div className="mb-4">
-        <h3 className="font-semibold text-lg text-gray-700 mb-2">选中颜色</h3>
-        <div className="w-full h-24 bg-gray-200 border rounded-md flex items-center justify-center text-gray-500">
-          N/A
+      <div className="mt-6">
+        <h3 className="mb-3 text-sm font-semibold text-slate-500">选中颜色</h3>
+        <div className="flex h-32 items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400">
+          尚未拾取颜色
         </div>
       </div>
     );
@@ -87,28 +90,23 @@ function ColorDisplay({ color }: { color: ColorData | null }) {
 
   const { r, g, b } = color;
   const hex = rgbToHex(r, g, b);
-  const rgbString = `rgb(${r},${g},${b})`;
+  const rgbString = `rgb(${r}, ${g}, ${b})`;
 
   return (
-    <div className="mb-4">
-      <h3 className="font-semibold text-lg text-gray-700 mb-2">选中颜色</h3>
-      <div
-        className="w-full h-24 border border-gray-300 rounded-md shadow-inner mb-4"
-        style={{ backgroundColor: rgbString }}
-      ></div>
-      <div className="mb-2">
-        <label className="text-xs font-medium text-gray-500">HEX</label>
-        <div className="relative font-mono bg-gray-100 p-2 rounded">
-          <code>{hex}</code>
-          <CopyButton textToCopy={hex} />
-        </div>
-      </div>
-      <div>
-        <label className="text-xs font-medium text-gray-500">RGB</label>
-        <div className="relative font-mono bg-gray-100 p-2 rounded">
-          <code>{rgbString}</code>
-          <CopyButton textToCopy={rgbString} />
-        </div>
+    <div className="mt-6">
+      <h3 className="mb-3 text-sm font-semibold text-slate-500">选中颜色</h3>
+      <div className="mb-5 h-32 rounded-2xl ring-1 ring-slate-900/10 shadow-inner" style={{ backgroundColor: rgbString }} />
+      <div className="flex flex-col gap-3">
+        {[
+          { label: 'HEX', value: hex },
+          { label: 'RGB', value: rgbString },
+        ].map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-2.5 ring-1 ring-slate-100">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{row.label}</span>
+            <code className="flex-1 text-right font-mono text-sm font-medium text-slate-700">{row.value}</code>
+            <CopyButton textToCopy={row.value} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -150,28 +148,28 @@ export default function EyeDropper() {
   };
 
   return (
-    <div className="bg-white font-sans text-gray-800 py-4">
-      <div className="w-full max-w-md mx-auto bg-gray-100 shadow-lg rounded-lg">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6 text-center">屏幕取色器</h1>
+    <ToolCard>
+      <ToolHeader title="屏幕取色器" subtitle="拾取屏幕任意位置的颜色" icon="🎨" gradient="from-indigo-500 to-violet-500" />
+      <div className="p-6">
         <button
           onClick={handlePickColor}
           disabled={!isSupported || isPicking}
-          className="mb-6 w-full cursor-pointer rounded-md bg-blue-500 px-4 py-3 text-center font-semibold text-white shadow-sm transition-colors hover:bg-blue-600 active:scale-95 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-center font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98] disabled:bg-gradient-to-r disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
         >
           {isPicking ? '正在拾取...' : '启动取色器 (吸管)'}
         </button>
+
         <ColorDisplay color={pickedColor} />
+
         {error && (
-          <div className="mt-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded-md text-sm">
-            {error}
-          </div>
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
         {!isSupported && !error && (
-          <div className="mt-4 p-3 bg-yellow-100 text-yellow-700 border border-yellow-300 rounded-md text-sm">
+          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-600">
             正在检查浏览器支持...
           </div>
         )}
       </div>
-    </div>
+    </ToolCard>
   );
 }

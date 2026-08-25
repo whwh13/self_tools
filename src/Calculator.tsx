@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { MouseEvent, ReactNode, TouchEvent } from 'react';
+import type { MouseEvent, TouchEvent } from 'react';
+import { ToolCard, ToolHeader } from './ui';
 
 const ZERO_DIVISION_ERROR = '不能除以 0';
 const MAX_DIGITS = 16;
@@ -45,29 +46,19 @@ function math(a: number, b: number, sign: string): number {
   }
 }
 
-function Wrapper({ children }: { children: ReactNode }) {
-  return <div className="w-full bg-white border border-gray-300 rounded-2xl overflow-hidden">{children}</div>;
-}
-
 function Screen({ primary, secondary }: ScreenProps) {
   return (
-    <div className="bg-gray-800 text-white text-right p-6 h-40 flex flex-col items-end justify-end break-all">
-      <span className="text-2xl font-light text-gray-400 mb-1 opacity-75 h-8 truncate max-w-full">
-        {secondary}
-      </span>
-      <span className="text-5xl font-light">{primary}</span>
+    <div className="flex h-36 flex-col items-end justify-end break-all bg-gradient-to-br from-slate-700 to-slate-900 p-5 text-white">
+      <span className="mb-1 h-6 max-w-full truncate text-xl font-light text-slate-400 opacity-90">{secondary}</span>
+      <span className="text-4xl font-light leading-tight">{primary}</span>
     </div>
   );
-}
-
-function ButtonBox({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-4 gap-px bg-gray-300">{children}</div>;
 }
 
 function Button({ className, value, onClick, onMouseDown, onMouseUp, onTouchStart, onTouchEnd }: ButtonProps) {
   return (
     <button
-      className={`text-2xl font-medium focus:outline-none transition-colors duration-150 flex items-center justify-center h-16 sm:h-20 ${className}`}
+      className={`flex h-14 items-center justify-center rounded-xl text-xl font-medium transition-colors duration-100 sm:h-16 ${className}`}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
@@ -81,7 +72,7 @@ function Button({ className, value, onClick, onMouseDown, onMouseUp, onTouchStar
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
-          className="w-6 h-6 mx-auto"
+          className="mx-auto h-6 w-6"
         >
           <path
             strokeLinecap="round"
@@ -223,24 +214,22 @@ export default function Calculator() {
   const getButtonClassName = (btn: string | number): string => {
     switch (btn) {
       case 'AC':
-        return 'bg-orange-400 hover:bg-orange-500 active:bg-orange-600';
+        return 'bg-orange-400 text-white hover:bg-orange-500 active:bg-orange-600';
       case '=':
-        return 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700';
+        return 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700';
       case '+':
       case '−':
       case '×':
       case '÷':
-        return 'bg-gray-200 hover:bg-gray-300 active:bg-orange-500';
+        return 'bg-slate-100 hover:bg-orange-100 hover:text-orange-500 active:bg-orange-200';
       case '+-':
       case 'HEX':
       case 'BKSP':
-        return 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400';
+        return 'bg-slate-100 hover:bg-slate-200 active:bg-slate-300';
       default:
-        return 'bg-white hover:bg-gray-200 active:bg-gray-300';
+        return 'bg-white ring-1 ring-slate-100 hover:bg-slate-50 active:bg-slate-100';
     }
   };
-
-  const fixedCalcHeight = 'h-[484px] sm:h-[560px]';
 
   const getPrimaryDisplay = (): string => {
     if (isHexView) return hexDisplay;
@@ -249,20 +238,21 @@ export default function Calculator() {
   };
 
   return (
-    <div className="bg-white px-4 sm:px-6 py-4 font-sans">
-      <div className="w-full max-w-[750px] mx-auto overflow-x-auto">
-        <div className="grid gap-8 grid-cols-2 min-w-[640px]">
-          <div className="w-full flex flex-col min-w-[200px]">
-            <Wrapper>
+    <ToolCard>
+      <ToolHeader title="计算器" subtitle="支持历史记录与十六进制转换" icon="🧮" gradient="from-slate-600 to-slate-800" />
+      <div className="px-4 py-6 sm:px-6">
+        <div className="mx-auto w-full max-w-[750px] overflow-x-auto">
+          <div className="grid min-w-[640px] grid-cols-2 gap-6">
+            <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 shadow-sm">
               <Screen
                 primary={getPrimaryDisplay()}
                 secondary={calc.sign && !isHexView ? `${calc.res} ${calc.sign}` : ''}
               />
-              <ButtonBox>
+              <div className="grid grid-cols-4 gap-1.5 bg-white p-1.5">
                 {btnValues.flat().map((btn, i) => (
                   <Button
                     key={i}
-                    className={`text-black ${getButtonClassName(btn)}`}
+                    className={`text-slate-700 ${getButtonClassName(btn)}`}
                     value={btn}
                     onClick={() => buttonClickHandler(btn)}
                     onMouseDown={btn === 'HEX' ? hexPressHandler : undefined}
@@ -271,19 +261,20 @@ export default function Calculator() {
                     onTouchEnd={btn === 'HEX' ? hexReleaseHandler : undefined}
                   />
                 ))}
-              </ButtonBox>
-            </Wrapper>
-          </div>
+              </div>
+            </div>
 
-          <div className="w-full flex flex-col min-w-[200px]">
-            <div className={`bg-gray-200 rounded-2xl p-6 ${fixedCalcHeight} border border-gray-300 flex flex-col`}>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">历史记录</h2>
+            <div className="flex flex-col rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
+              <h3 className="mb-4 text-lg font-bold text-slate-700">历史记录</h3>
               {history.length === 0 ? (
-                <p className="text-gray-500 text-center flex-1 flex items-center justify-center">暂无计算历史</p>
+                <p className="flex flex-1 items-center justify-center text-sm text-slate-400">暂无计算历史</p>
               ) : (
-                <ul className="flex-1 overflow-y-auto space-y-3 pr-2">
+                <ul className="flex-1 space-y-2.5 overflow-y-auto pr-1">
                   {history.map((item, index) => (
-                    <li key={index} className="p-2 rounded-lg text-gray-700 text-right text-lg break-words">
+                    <li
+                      key={index}
+                      className="rounded-xl bg-white px-4 py-2.5 text-right text-base text-slate-600 ring-1 ring-slate-100 shadow-sm break-words"
+                    >
                       {item}
                     </li>
                   ))}
@@ -293,6 +284,6 @@ export default function Calculator() {
           </div>
         </div>
       </div>
-    </div>
+    </ToolCard>
   );
 }

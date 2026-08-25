@@ -4,18 +4,16 @@ import { tools } from './tools';
 
 export default function App() {
   return (
-    <div className="relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 text-slate-800">
       <FloatingDock />
-      <div className="grid grid-cols-1 gap-8 w-full min-w-[200px]">
+      <main className="mx-auto max-w-5xl px-4 py-10">
         {tools.map((tool, index) => (
-          <div key={tool.id}>
-            <div id={tool.id} className="scroll-mt-4">
-              <tool.Component />
-            </div>
+          <section key={tool.id} id={tool.id} className="scroll-mt-24">
+            <tool.Component />
             {index < tools.length - 1 && <SectionDivider />}
-          </div>
+          </section>
         ))}
-      </div>
+      </main>
     </div>
   );
 }

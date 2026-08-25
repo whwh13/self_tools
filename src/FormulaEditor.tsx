@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DetailedHTMLProps, FormEvent, HTMLAttributes } from 'react';
 import type { MathfieldElement } from 'mathlive';
+import { ToolCard, ToolHeader } from './ui';
 import './mathlive-static.css';
 
 type MathFieldProps = DetailedHTMLProps<HTMLAttributes<MathfieldElement>, MathfieldElement> & {
@@ -17,6 +18,18 @@ declare module 'react' {
     }
   }
 }
+
+const toolbarButtons: { label: string; snippet: string }[] = [
+  { label: 'a/b', snippet: '\\frac{ }{ }' },
+  { label: '√', snippet: '\\sqrt{ }' },
+  { label: 'x^', snippet: '^{ }' },
+  { label: 'x_', snippet: '_{ }' },
+  { label: '∑', snippet: '\\sum_{i=1}^{n} ' },
+  { label: '∫', snippet: '\\int_{a}^{b} ' },
+  { label: 'π', snippet: '\\pi ' },
+  { label: 'θ', snippet: '\\theta ' },
+  { label: '·', snippet: '\\cdot ' },
+];
 
 export default function FormulaEditor() {
   const [ready, setReady] = useState(false);
@@ -78,94 +91,90 @@ export default function FormulaEditor() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4">
-      <header className="bg-gradient-to-r from-violet-600 to-indigo-700 text-white p-5 rounded-lg shadow mb-5 text-center">
-        <h2 className="text-xl font-bold">公式可视化编辑器 → LaTeX</h2>
-        <p className="text-xs text-violet-100 mt-1">
-          基于
-          <a
-            href="https://github.com/arnog/mathlive"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline mx-1 hover:text-white"
-          >
-            MathLive
-          </a>
-          可视化编辑并导出 LaTeX
-        </p>
-      </header>
+    <ToolCard>
+      <ToolHeader title="公式编辑器 → LaTeX" subtitle="基于 MathLive 的可视化公式编辑" icon="∑" gradient="from-violet-500 to-fuchsia-500" />
+      <div className="p-6">
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-2xl bg-slate-50/70 p-4 ring-1 ring-slate-100">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-600">可视化编辑</h3>
+              {!ready && <span className="text-xs text-slate-400">正在加载编辑器…</span>}
+            </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-700">可视化编辑</h3>
-            {!ready && <span className="text-xs text-gray-500">正在加载编辑器…</span>}
+            <div className="mb-3 flex flex-wrap gap-1.5">
+              {toolbarButtons.map((btn) => (
+                <button
+                  key={btn.snippet}
+                  onClick={() => insertLatex(btn.snippet)}
+                  className="min-w-10 rounded-lg bg-white px-2.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-violet-500 hover:text-white hover:ring-violet-500 active:scale-95"
+                >
+                  {btn.label}
+                </button>
+              ))}
+              <button
+                onClick={() => setLatexValue('')}
+                className="rounded-lg bg-white px-2.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-100 active:scale-95"
+              >
+                清空
+              </button>
+            </div>
+
+            <div className="min-h-20 rounded-xl border border-slate-200 bg-white p-3">
+              {ready ? (
+                <math-field
+                  ref={mfRef}
+                  onInput={handleInput}
+                  virtual-keyboard-mode="manual"
+                  className="w-full text-lg"
+                  style={{ width: '100%' }}
+                  placeholder="在此输入/编辑公式，或使用上方工具栏插入结构"
+                />
+              ) : (
+                <textarea
+                  className="h-20 w-full rounded-lg border border-slate-200 bg-white p-2 font-mono text-sm"
+                  placeholder="MathLive 加载中…临时输入 LaTeX 也可"
+                  value={latex}
+                  onChange={(e) => setLatex(e.target.value)}
+                />
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-3">
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\frac{ }{ }')}>a/b</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\sqrt{ }')}>√</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('^{ }')}>x^</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('_{ }')}>x_</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\sum_{i=1}^{n} ')}>∑</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\int_{a}^{b} ')}>∫</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\pi ')}>π</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\theta ')}>θ</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\cdot ')}>·</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => setLatexValue('')}>清空</button>
-          </div>
+          <div className="flex flex-col rounded-2xl bg-slate-50/70 p-4 ring-1 ring-slate-100">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-600">LaTeX 与预览</h3>
+              <button
+                onClick={copyLatex}
+                disabled={!latex}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                  copied
+                    ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/40'
+                    : 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-sm shadow-violet-500/30 hover:shadow-md disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none'
+                }`}
+              >
+                {copied ? '已复制' : '复制 LaTeX'}
+              </button>
+            </div>
 
-          <div className="border rounded bg-gray-50 p-3 min-h-[64px]">
-            {ready ? (
-              <math-field
-                ref={mfRef}
-                onInput={handleInput}
-                virtual-keyboard-mode="manual"
-                className="w-full text-lg"
-                style={{ width: '100%' }}
-                placeholder="在此输入/编辑公式，或使用上方工具栏插入结构"
-              />
-            ) : (
-              <textarea
-                className="w-full h-20 p-2 border rounded text-sm font-mono bg-white"
-                placeholder="MathLive 加载中…临时输入 LaTeX 也可"
-                value={latex}
-                onChange={(e) => setLatex(e.target.value)}
-              />
-            )}
-          </div>
-        </div>
+            <label className="mb-1 text-xs text-slate-400">LaTeX 代码</label>
+            <textarea
+              readOnly
+              rows={6}
+              value={latex}
+              className="w-full rounded-xl border border-slate-200 bg-white p-3 font-mono text-sm text-slate-700"
+            />
 
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-700">LaTeX 与预览</h3>
-            <button
-              onClick={copyLatex}
-              disabled={!latex}
-              className="px-3 py-1 rounded bg-green-600 text-white text-xs disabled:bg-gray-300"
-            >
-              {copied ? '已复制' : '复制 LaTeX'}
-            </button>
-          </div>
-
-          <label className="text-xs text-gray-500 mb-1">LaTeX 代码</label>
-          <textarea
-            readOnly
-            rows={6}
-            value={latex}
-            className="w-full p-2 border rounded font-mono text-sm bg-gray-50"
-          />
-
-          <label className="text-xs text-gray-500 mt-4 mb-1">预览</label>
-          <div className="border rounded bg-gray-50 p-3 min-h-[64px]">
-            {ready ? (
-              <math-field read-only className="w-full text-lg" value={latex} />
-            ) : (
-              <div className="text-xs text-gray-400">编辑器初始化后显示预览</div>
-            )}
+            <label className="mb-1 mt-4 text-xs text-slate-400">预览</label>
+            <div className="min-h-20 flex-1 rounded-xl border border-slate-200 bg-white p-3">
+              {ready ? (
+                <math-field read-only className="w-full text-lg" value={latex} />
+              ) : (
+                <div className="text-xs text-slate-400">编辑器初始化后显示预览</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ToolCard>
   );
 }

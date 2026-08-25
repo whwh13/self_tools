@@ -22,8 +22,30 @@ export default function OcrComponent() {
 
     (async () => {
       try {
-        const { PaddleOcrService } = await import('ppu-paddle-ocr/web');
-        service = new PaddleOcrService();
+        const { PaddleOcrService, DEFAULT_MODEL_URLS } = await import('ppu-paddle-ocr/web');
+        const { detection, recognition, charactersDictionary } = DEFAULT_MODEL_URLS;
+        const cache = typeof caches !== 'undefined' ? await caches.open('paddle-ocr-models-v1') : null;
+
+        const loadModel = async (url: string): Promise<ArrayBuffer> => {
+          if (cache) {
+            const cached = await cache.match(url);
+            if (cached) return cached.arrayBuffer();
+            const buffer = await (await fetch(url)).arrayBuffer();
+            await cache.put(url, new Response(buffer));
+            return buffer;
+          }
+          return (await fetch(url)).arrayBuffer();
+        };
+
+        const [detBuf, recBuf, dictBuf] = await Promise.all([
+          loadModel(detection),
+          loadModel(recognition),
+          loadModel(charactersDictionary),
+        ]);
+
+        service = new PaddleOcrService({
+          model: { detection: detBuf, recognition: recBuf, charactersDictionary: dictBuf },
+        });
         await service.initialize();
         if (!active) return;
         serviceRef.current = service;

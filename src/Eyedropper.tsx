@@ -119,6 +119,10 @@ export default function EyeDropper() {
   const [isPicking, setIsPicking] = useState(false);
 
   useEffect(() => {
+    if (!window.isSecureContext) {
+      setError('EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。');
+      return;
+    }
     if (window.EyeDropper) {
       setIsSupported(true);
     } else {
@@ -127,6 +131,10 @@ export default function EyeDropper() {
   }, []);
 
   const handlePickColor = async () => {
+    if (!window.isSecureContext) {
+      setError('EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。');
+      return;
+    }
     if (!window.EyeDropper) {
       setError('EyeDropper API 不被支持。');
       return;

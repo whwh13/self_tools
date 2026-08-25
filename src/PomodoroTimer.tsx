@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ToolCard, ToolHeader } from './ui';
 
-const INITIAL_WORK = 25;
-const INITIAL_BREAK = 5;
+const INITIAL_WORK = 45;
+const INITIAL_BREAK = 15;
 const RADIUS = 116;
 
 export default function PomodoroTimer() {

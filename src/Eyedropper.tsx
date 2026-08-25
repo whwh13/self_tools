@@ -112,6 +112,9 @@ function ColorDisplay({ color }: { color: ColorData | null }) {
   );
 }
 
+const ERROR_HTTPS = 'EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。';
+const ERROR_UNSUPPORTED = '您的浏览器不支持 EyeDropper API。请尝试使用最新的 Chrome 或 Edge 浏览器。';
+
 export default function EyeDropper() {
   const [pickedColor, setPickedColor] = useState<ColorData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -120,19 +123,19 @@ export default function EyeDropper() {
 
   useEffect(() => {
     if (!window.isSecureContext) {
-      setError('EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。');
+      setError(ERROR_HTTPS);
       return;
     }
     if (window.EyeDropper) {
       setIsSupported(true);
     } else {
-      setError('您的浏览器不支持 EyeDropper API。请尝试使用最新的 Chrome 或 Edge 浏览器。');
+      setError(ERROR_UNSUPPORTED);
     }
   }, []);
 
   const handlePickColor = async () => {
     if (!window.isSecureContext) {
-      setError('EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。');
+      setError(ERROR_HTTPS);
       return;
     }
     if (!window.EyeDropper) {
@@ -170,7 +173,15 @@ export default function EyeDropper() {
         <ColorDisplay color={pickedColor} />
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            <p>{error}</p>
+            {error === ERROR_UNSUPPORTED && (
+              <p className="mt-2 font-mono text-xs text-red-400">
+                secure={String(window.isSecureContext)} · dropper={String('EyeDropper' in window)} ·{' '}
+                {navigator.userAgent}
+              </p>
+            )}
+          </div>
         )}
         {!isSupported && !error && (
           <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-600">

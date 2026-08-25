@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import { ToolCard, ToolHeader } from './ui';
 
 interface ColorData {
@@ -112,36 +113,19 @@ function ColorDisplay({ color }: { color: ColorData | null }) {
   );
 }
 
-const ERROR_HTTPS = 'EyeDropper API 需要安全上下文，请通过 HTTPS 访问本站后再试。';
-const ERROR_UNSUPPORTED = '您的浏览器不支持 EyeDropper API。请尝试使用最新的 Chrome 或 Edge 浏览器。';
-
 export default function EyeDropper() {
   const [pickedColor, setPickedColor] = useState<ColorData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
   const [isPicking, setIsPicking] = useState(false);
+  const [canUseNative, setCanUseNative] = useState(false);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!window.isSecureContext) {
-      setError(ERROR_HTTPS);
-      return;
-    }
-    if (window.EyeDropper) {
-      setIsSupported(true);
-    } else {
-      setError(ERROR_UNSUPPORTED);
-    }
+    setCanUseNative(window.isSecureContext && Boolean(window.EyeDropper));
   }, []);
 
   const handlePickColor = async () => {
-    if (!window.isSecureContext) {
-      setError(ERROR_HTTPS);
-      return;
-    }
-    if (!window.EyeDropper) {
-      setError('EyeDropper API 不被支持。');
-      return;
-    }
+    if (!window.isSecureContext || !window.EyeDropper) return;
 
     setIsPicking(true);
     setError(null);
@@ -158,35 +142,49 @@ export default function EyeDropper() {
     }
   };
 
+  const handleColorInput = (e: ChangeEvent<HTMLInputElement>) => {
+    setPickedColor(hexToRgb(e.target.value));
+  };
+
   return (
     <ToolCard>
       <ToolHeader title="屏幕取色器" subtitle="拾取屏幕任意位置的颜色" icon="🎨" gradient="from-indigo-500 to-violet-500" />
       <div className="p-6">
-        <button
-          onClick={handlePickColor}
-          disabled={!isSupported || isPicking}
-          className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-center font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98] disabled:bg-gradient-to-r disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none disabled:cursor-not-allowed"
-        >
-          {isPicking ? '正在拾取...' : '启动取色器 (吸管)'}
-        </button>
+        {canUseNative ? (
+          <button
+            onClick={handlePickColor}
+            disabled={isPicking}
+            className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-center font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isPicking ? '正在拾取...' : '启动取色器 (吸管)'}
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => colorInputRef.current?.click()}
+              className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-center font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98]"
+            >
+              打开颜色选择器
+            </button>
+            <input
+              ref={colorInputRef}
+              type="color"
+              onChange={handleColorInput}
+              className="hidden"
+              aria-label="选择颜色"
+            />
+          </>
+        )}
 
         <ColorDisplay color={pickedColor} />
 
         {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-            <p>{error}</p>
-            {error === ERROR_UNSUPPORTED && (
-              <p className="mt-2 font-mono text-xs text-red-400">
-                secure={String(window.isSecureContext)} · dropper={String('EyeDropper' in window)} ·{' '}
-                {navigator.userAgent}
-              </p>
-            )}
-          </div>
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
-        {!isSupported && !error && (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-600">
-            正在检查浏览器支持...
-          </div>
+        {!canUseNative && !error && (
+          <p className="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-600">
+            当前环境不支持 EyeDropper API（需 HTTPS + 桌面版 Chrome/Edge，Linux 上 Chrome 未实现该 API），已改用系统颜色选择器，仅可选取页面内的颜色。
+          </p>
         )}
       </div>
     </ToolCard>

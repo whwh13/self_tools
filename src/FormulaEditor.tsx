@@ -1,69 +1,69 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { DetailedHTMLProps, FormEvent, HTMLAttributes } from 'react';
 import type { MathfieldElement } from 'mathlive';
 import './mathlive-static.css';
 
-// Augment React's JSX namespace so TSX recognizes the custom <math-field> element.
+type MathFieldProps = DetailedHTMLProps<HTMLAttributes<MathfieldElement>, MathfieldElement> & {
+  value?: string;
+  placeholder?: string;
+  'virtual-keyboard-mode'?: 'manual' | 'onfocus' | 'off' | string;
+  'read-only'?: boolean;
+};
+
 declare module 'react' {
   namespace JSX {
     interface IntrinsicElements {
-      'math-field': React.DetailedHTMLProps<
-        React.HTMLAttributes<MathfieldElement>,
-        MathfieldElement
-      > & {
-        value?: string;
-        placeholder?: string;
-        'virtual-keyboard-mode'?: 'manual' | 'onfocus' | 'off' | string;
-        'read-only'?: boolean;
-        onInput?: (e: any) => void;
-      };
+      'math-field': MathFieldProps;
     }
   }
 }
 
-const FormulaEditor: React.FC = () => {
+export default function FormulaEditor() {
   const [ready, setReady] = useState(false);
   const [latex, setLatex] = useState('');
   const [copied, setCopied] = useState(false);
-  const mfRef = useRef<any>(null);
+  const mfRef = useRef<MathfieldElement | null>(null);
 
-  // 仅加载 JS，CSS 改为本地 import
   useEffect(() => {
     let mounted = true;
     import('mathlive')
-      .then(() => { if (mounted) setReady(true); })
-      .catch(() => { if (mounted) setReady(false); });
-    return () => { mounted = false; };
+      .then(() => {
+        if (mounted) setReady(true);
+      })
+      .catch(() => {
+        if (mounted) setReady(false);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const handleInput = useCallback((e: any) => {
-    const v = e?.target?.value ?? mfRef.current?.value ?? '';
-    setLatex(v);
+  const handleInput = useCallback((e: FormEvent<MathfieldElement>) => {
+    setLatex(e.currentTarget.value);
   }, []);
 
   const insertLatex = (snippet: string) => {
-    if (mfRef.current?.insert) {
-      mfRef.current.insert(snippet);
-      mfRef.current.focus();
-      setLatex(mfRef.current.value ?? '');
-    }
+    const mf = mfRef.current;
+    if (!mf) return;
+    mf.insert(snippet);
+    mf.focus();
+    setLatex(mf.value);
   };
 
   const setLatexValue = (v: string) => {
-    if (mfRef.current) {
-      mfRef.current.value = v;
-      setLatex(v);
-      mfRef.current.focus();
-    } else {
-      setLatex(v);
+    const mf = mfRef.current;
+    if (mf) {
+      mf.value = v;
+      mf.focus();
     }
+    setLatex(v);
   };
 
-  const copyLatex = () => {
+  const copyLatex = async () => {
     if (!latex) return;
-    navigator.clipboard?.writeText(latex).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    }).catch(() => {
+    try {
+      await navigator.clipboard.writeText(latex);
+    } catch {
       const ta = document.createElement('textarea');
       ta.value = latex;
       ta.style.position = 'fixed';
@@ -72,9 +72,9 @@ const FormulaEditor: React.FC = () => {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
   return (
@@ -96,18 +96,12 @@ const FormulaEditor: React.FC = () => {
       </header>
 
       <div className="grid md:grid-cols-2 gap-6">
-        {/* 左侧：编辑器 */}
         <div className="bg-white rounded-lg shadow p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-700">可视化编辑</h3>
-            {!ready && (
-              <span className="text-xs text-gray-500">
-                正在加载编辑器…若长时间无响应，请执行：npm i mathlive
-              </span>
-            )}
+            {!ready && <span className="text-xs text-gray-500">正在加载编辑器…</span>}
           </div>
 
-          {/* 工具栏 */}
           <div className="flex flex-wrap gap-2 mb-3">
             <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\frac{ }{ }')}>a/b</button>
             <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\sqrt{ }')}>√</button>
@@ -118,12 +112,9 @@ const FormulaEditor: React.FC = () => {
             <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\pi ')}>π</button>
             <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\theta ')}>θ</button>
             <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => insertLatex('\\cdot ')}>·</button>
-            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => setLatexValue('')}>
-              清空
-            </button>
+            <button className="px-2 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200" onClick={() => setLatexValue('')}>清空</button>
           </div>
 
-          {/* 编辑区域（MathLive） */}
           <div className="border rounded bg-gray-50 p-3 min-h-[64px]">
             {ready ? (
               <math-field
@@ -145,7 +136,6 @@ const FormulaEditor: React.FC = () => {
           </div>
         </div>
 
-        {/* 右侧：LaTeX 与预览 */}
         <div className="bg-white rounded-lg shadow p-4 flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-700">LaTeX 与预览</h3>
@@ -178,6 +168,4 @@ const FormulaEditor: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default FormulaEditor;
+}
